@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	
+
 	r := gin.Default()
 	r.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"dado": "Ola mundo"})
@@ -17,5 +17,6 @@ func main() {
 
 	models.ConnectDatabase()
 	r.GET("/books", handlers.FindBooks)
+	r.POST("/books", handlers.CreateBook)
 	r.Run()
 }
