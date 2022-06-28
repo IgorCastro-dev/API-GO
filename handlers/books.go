@@ -9,6 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func PaginaPrincipal(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"data": "ola mundo"})
+}
+
 // GET /books
 // Get all books
 func FindBooks(c *gin.Context) {
