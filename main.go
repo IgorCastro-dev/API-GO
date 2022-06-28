@@ -14,5 +14,6 @@ func main() {
 	r.GET("/", handlers.PaginaPrincipal)
 	r.GET("/books", handlers.FindBooks)
 	r.POST("/books", handlers.CreateBook)
+	r.GET("/books/:id", handlers.FindBook)
 	r.Run()
 }
