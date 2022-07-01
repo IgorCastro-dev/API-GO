@@ -1,112 +1,82 @@
-// controllers/books.go
-
 package handlers
 
 import (
-	"api/models"
+	"apirest/models"
 	"log"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 // GET /
-func PaginaPrincipal(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"data": "ola mundo"})
+func PaginaPrincipal(c echo.Context) error {
+	return c.String(http.StatusOK, "Hello, World!")
 }
 
-// GET /books
-// Get all books
-func FindBooks(c *gin.Context) {
+func FindBooks(c echo.Context) error {
 	var books []models.Book
 	if err := models.DB.Find(&books).Error; err != nil {
 		log.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{"Erro": err.Error()})
-		return
+		return c.JSON(http.StatusBadRequest, map[string]string{"Erro": err.Error()})
 	}
-	c.JSON(http.StatusOK, gin.H{"data": books})
+	return c.JSON(http.StatusOK, map[string][]models.Book{"data": books})
 }
 
-// POST /books
-// Create new book
-func CreateBook(c *gin.Context) {
-	// Validate input
-	var input models.CreateBookInput
-	if err := c.ShouldBindJSON(&input); err != nil {
+//GET /books
+func FindBook(c echo.Context) error {
+	var book models.Book
+	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
 		log.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		return c.JSON(http.StatusBadRequest, map[string]string{"Erro": err.Error()})
 	}
+	return c.JSON(http.StatusOK, map[string]models.Book{"data": book})
+}
 
-	// Create book
-	book := models.Book{Title: input.Title, Author: input.Author}
+//POST /books
+func CreateBook(c echo.Context) error {
+	var input models.CreateBook
+	if err := c.Bind(&input); err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"Erro": err.Error()})
+	}
+	var book = models.Book{Title: input.Title, Author: input.Author}
 	if err := models.DB.Create(&book).Error; err != nil {
 		log.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		return c.JSON(http.StatusInternalServerError, map[string]string{"Erro": "erro no servidor"})
 	}
-
-	c.JSON(http.StatusOK, gin.H{"data": book})
+	return c.JSON(http.StatusOK, map[string]models.Book{"data": book})
 }
 
-// GET /books/:id
-// Find a book
-func FindBook(c *gin.Context) { // Get model if exist
-	var book models.Book
-
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
+func UpdateBook(c echo.Context) error {
+	var input models.UpdateBook
+	if err := c.Bind(&input); err != nil {
 		log.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
-		return
+		return c.JSON(http.StatusBadRequest, map[string]string{"Erro": err.Error()})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": book})
-}
-
-// PUT /books/:id
-// Update a book
-func UpdateBook(c *gin.Context) {
-	// Get model if exist
 	var book models.Book
 	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
 		log.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
-		return
-	}
-
-	// Validate input
-	var input models.UpdateBookInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		log.Println(err)
-		return
+		return c.JSON(http.StatusBadRequest, map[string]string{"Erro": err.Error()})
 	}
 
 	if err := models.DB.Model(&book).Updates(input).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		log.Println(err)
-		return
+		return c.JSON(http.StatusInternalServerError, map[string]string{"Erro": "erro no servidor"})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": book})
+	return c.JSON(http.StatusOK, map[string]models.Book{"data": book})
 }
 
-// DELETE /books/:id
-// Delete a book
-func DeleteBook(c *gin.Context) {
-	// Get model if exist
+func DeleteBook(c echo.Context) error {
 	var book models.Book
 	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		log.Println(err)
-		return
+		return c.JSON(http.StatusBadRequest, map[string]string{"Erro": err.Error()})
 	}
-
 	if err := models.DB.Delete(&book).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		log.Println(err)
-		return
+		return c.JSON(http.StatusInternalServerError, map[string]string{"Erro": "erro no servidor"})
 	}
-
-	c.JSON(http.StatusOK, gin.H{"data": true})
+	return c.JSON(http.StatusOK, map[string]bool{"Data": true})
 }

@@ -1,21 +1,21 @@
 package main
 
 import (
-	"api/handlers"
-	"api/models"
+	"apirest/handlers"
+	"apirest/models"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 func main() {
 
-	r := gin.Default()
+	e := echo.New()
 	models.ConnectDatabase()
-	r.GET("/", handlers.PaginaPrincipal)
-	r.GET("/books", handlers.FindBooks)
-	r.POST("/books", handlers.CreateBook)
-	r.GET("/books/:id", handlers.FindBook)
-	r.PUT("/books/:id", handlers.UpdateBook)
-	r.DELETE("/books/:id", handlers.DeleteBook)
-	r.Run()
+	e.GET("/", handlers.PaginaPrincipal)
+	e.GET("/books", handlers.FindBooks)
+	e.GET("/books/:id", handlers.FindBook)
+	e.POST("/books", handlers.CreateBook)
+	e.PUT("/books/:id", handlers.UpdateBook)
+	e.DELETE("/books/:id", handlers.DeleteBook)
+	e.Logger.Fatal(e.Start(":8080"))
 }
